@@ -1,0 +1,52 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+# Load packages
+```{r}
+library(ggplot2)
+library(lme4)
+library(tidyr)
+```
+
+## Load data
+
+```{r}
+# read CSV
+data <- read.csv('data/strategic_signaling_data_long.csv')
+```
+
+## Mixed model analysis
+
+### Political affiliation -> average perceived
+
+```{r}
+mdl_1 <- lmer(avg_perceived ~ poli_affil + (1 | tweet), data = data)
+summary(mdl_1)
+```
+
+### Political affiliation -> average sentiment
+
+```{r}
+mdl_2 <- lmer(avg_sentiment ~ poli_affil + (1 | tweet), data = data)
+summary(mdl_2)
+```
+
+## Results
+
+Using a mixed-effects model above, we see that having a political affiliation of `right` (as opposed to `left`) is associated with an increased `avg_perceived` of 0.431 when accounting for tweet-level effects, and an increased `avg_sentiment` of 0.073, indicating a larger effect size on `avg_perceived`. We see similar amounts of error on the intercepts and effects. (I'll note that the first model, on `avg_perceived`, has a singular fit -- unusual, given how few parameters there are in the model -- and I'm not sure that there's something actually wrong here, so I'll continue.)
+
+### Visualization
+
+```{r}
+datalong <- gather(data, key = 'avg', value='value', c('avg_perceived', 'avg_sentiment'))
+
+ggplot(datalong, aes(x=poli_affil, y=value)) + 
+  geom_bar(stat = 'summary', fun = "mean", fill = 'cadetblue') + 
+  facet_wrap(~avg)
+```
+
